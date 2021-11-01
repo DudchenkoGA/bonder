@@ -1,0 +1,103 @@
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath 'io.qameta.allure:allure-gradle:+'
+    }
+}
+
+group 'ru.gazprombank'
+version '1.0-SNAPSHOT'
+
+apply plugin: 'java'
+apply plugin: 'idea'
+apply plugin: 'io.qameta.allure'
+apply plugin: 'project-report'
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+    jcenter()
+}
+
+configurations {
+    agent
+}
+
+allure {
+    version = '2.4.1'
+    aspectjweaver = true
+}
+
+dependencies {
+    //Spring
+    compile "org.springframework:spring-core:" + spring_version
+    compile "org.springframework:spring-context:" + spring_version
+    testCompile "org.springframework:spring-test:" + spring_version
+    //Test
+    compile "org.testng:testng:" + testng_version
+    //Report
+    compile "io.qameta.allure:allure-testng:" + allure_version
+    agent "org.aspectj:aspectjweaver:" + aspectj_version
+    //Json
+    compile "com.fasterxml.jackson.core:jackson-databind:" + jackson_version
+    compile "com.fasterxml.jackson.core:jackson-core:" + jackson_version
+    compile "com.fasterxml.jackson.core:jackson-annotations:" + jackson_version
+    //Rest
+    compile "io.rest-assured:rest-assured:" + restassured_version
+    //Log
+    compile "org.slf4j:slf4j-api:" + slf4j_version
+    compile "org.slf4j:slf4j-simple:" + slf4j_version
+    //utils for working with Date
+    compile "joda-time:joda-time:" + joda_version
+    compile group: 'org.bouncycastle', name: 'bcprov-jdk15on', version: '1.60'
+
+    implementation group: 'org.jsoup', name: 'jsoup', version: '1.13.1'
+
+}
+
+test.doFirst {
+    jvmArgs "-javaagent:${configurations.agent.singleFile}"
+    jvmArgs "-Dfile.encoding=UTF-8"
+}
+
+test {
+    systemProperty "allure.results.directory", "build/allure-results"
+
+    testLogging {
+        showStandardStreams = true
+    }
+
+    if(System.getenv('property.contour') == null) {
+        environment 'property.contour', 'test'
+        println 'Contour: test(default)'
+    } else {
+        environment 'property.contour', System.getenv('property.contour')
+        println 'property.contour: ' + System.getenv('property.contour')
+    }
+
+    ignoreFailures = true
+
+    useTestNG() {
+        useDefaultListeners = true
+        if(System.getProperty('suite') == 'regres') {
+            suites "src/test/resources/regres.xml"
+            println 'Suite: regres'
+        }
+        else if (System.getProperty('suite') == 'depositOpen') {
+            suites "src/test/resources/depositOpen.xml"
+            println 'Suite: depositOpen'
+        }
+        else if (System.getProperty('suite') == 'smoke') {
+            suites "src/test/resources/smoke.xml"
+            println 'Suite: smoke'
+        } else {
+            suites "src/test/resources/regres.xml"
+            println 'Suite: regres(default)'
+        }
+    }
+}
+
