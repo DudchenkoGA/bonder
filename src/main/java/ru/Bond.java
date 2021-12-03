@@ -8,18 +8,18 @@ import java.util.ArrayList;
 import static ru.TextUtils.stringToDate;
 
 public class Bond {
-    String name;
-    String code;
-    LocalDate buy_date;
-    BigDecimal price;
-    BigDecimal nominal;
-    LocalDate end_date;
-    LocalDate end_date_eff;
-    Integer coupon_period;
-    LocalDate nearest_coupon_date;
-    BigDecimal coupon;
-    BigDecimal coupon_percent;
-    BigDecimal accrued_interest;
+    public String name;
+    public String code;
+    public LocalDate buy_date;
+    public BigDecimal price;
+    public BigDecimal nominal;
+    public LocalDate end_date;
+    public LocalDate end_date_eff;
+    public Integer coupon_period;
+    public LocalDate nearest_coupon_date;
+    public BigDecimal coupon;
+    public BigDecimal coupon_percent;
+    public BigDecimal accrued_interest;
     public Integer listing;
     public ArrayList<Coupon> coupon_calendar;
 
@@ -48,6 +48,7 @@ public class Bond {
         for (Coupon coupon : this.coupon_calendar){
             if (coupon.profit.compareTo(this.coupon_percent)<0){
                 this.end_date = stringToDate(this.coupon_calendar.get(coupon.index-2).date,"dd-MM-yyyy");
+                this.nominal = this.nominal.multiply(this.price).setScale(2).divide(BigDecimal.valueOf(100), BigDecimal.ROUND_DOWN);
                 break;
             }
         }
@@ -62,6 +63,27 @@ public class Bond {
                 .multiply(BigDecimal.valueOf(365)).multiply(BigDecimal.valueOf(100)).setScale(4, BigDecimal.ROUND_HALF_UP);
 
         return profit.toString();
+    }
+    public BigDecimal getProfit_BigDecimal(){
+
+        for (Coupon coupon : this.coupon_calendar){
+            if (coupon.profit.compareTo(this.coupon_percent)<0){
+                this.end_date = stringToDate(this.coupon_calendar.get(coupon.index-2).date,"dd-MM-yyyy");
+                this.nominal = this.nominal.multiply(this.price).setScale(2).divide(BigDecimal.valueOf(100), BigDecimal.ROUND_DOWN);
+                break;
+            }
+        }
+
+        long count_of_coupons = ChronoUnit.DAYS.between(this.nearest_coupon_date, this.end_date)/this.coupon_period+1;
+        BigDecimal buy = this.nominal.multiply(this.price).divide(BigDecimal.valueOf(100)).add(this.accrued_interest)
+                .multiply(BigDecimal.valueOf(100.05).divide(BigDecimal.valueOf(100))).setScale(10);
+        BigDecimal sell = this.nominal.add(this.coupon.multiply(BigDecimal.valueOf(count_of_coupons))
+                .multiply(BigDecimal.valueOf(0.87))).setScale(10);
+        BigDecimal profit = (sell.divide(buy, BigDecimal.ROUND_HALF_UP).subtract(BigDecimal.valueOf(1)))
+                .divide(BigDecimal.valueOf(ChronoUnit.DAYS.between(this.buy_date, this.end_date)), BigDecimal.ROUND_HALF_UP)
+                .multiply(BigDecimal.valueOf(365)).multiply(BigDecimal.valueOf(100)).setScale(4, BigDecimal.ROUND_HALF_UP);
+
+        return profit;
     }
 
     public String getName() {

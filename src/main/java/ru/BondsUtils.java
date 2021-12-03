@@ -28,7 +28,9 @@ public class BondsUtils {
             }
             Elements coupon_table = tables.get(1).getElementsByTag("tr");
             coupon_table.remove(0);
-
+            if (coupon_table.size()<3){
+                continue;
+            }
 //            System.out.println("trying to parse bond #" +i + " link: " + link);
 //            if (i==48){
 //                System.out.println("BLYAT");
@@ -61,6 +63,9 @@ public class BondsUtils {
                 }else {
                     break;
                 }
+            }
+            if (coupon_calendar.size()<3){
+                continue;
             }
 
             if (info.get(11).text().matches(".*\\d.*")&&info.get(15).text().matches(".*\\d.*")){
@@ -96,6 +101,9 @@ public class BondsUtils {
         Document html = Jsoup.parse(response);
         Elements tables = html.body().getElementsByClass("simple-little-table bond");
         Elements info = tables.get(0).getElementsByTag("td");
+        if (tables.size()==1){
+            throw new NullPointerException("нет таблицы купонов");
+        }
         Elements coupon_table = tables.get(1).getElementsByTag("tr");
         coupon_table.remove(0);
 
@@ -131,6 +139,9 @@ public class BondsUtils {
             }else {
                 break;
             }
+        }
+        if (coupon_calendar.size()<3){
+            throw new NullPointerException("мало купонов");
         }
 
         if (info.get(11).text().matches(".*\\d.*")&&info.get(15).text().matches(".*\\d.*")){
