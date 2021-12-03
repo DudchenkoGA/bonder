@@ -76,3 +76,4 @@ fabric.properties
 .idea/caches/build_file_checksums.ser
 /allure-results/
 /build/
+/build/allure-results/
